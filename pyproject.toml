@@ -1,0 +1,39 @@
+[project]
+name = "weekly-pr-sheet-agent"
+version = "0.1.0"
+description = "LangGraph agent that turns this week's GitHub pull requests into one spreadsheet row per day."
+readme = "README.md"
+requires-python = ">=3.10"
+
+# Everything needed for the default setup: Groq as the LLM, GitHub as the
+# source, and both sheet backends (Google Sheets + local .xlsx).
+dependencies = [
+    # agent
+    "langgraph>=0.2.50",
+    "langchain-core>=0.3.0",
+    # LLM (default provider)
+    "langchain-groq>=0.2.0",
+    # config + http
+    "python-dotenv>=1.0.1",
+    "pyyaml>=6.0.1",
+    "requests>=2.32.0",
+    # sheet backends
+    "gspread>=6.1.0",
+    "google-auth>=2.35.0",
+    "openpyxl>=3.1.5",
+    # Windows ships no IANA timezone database; without this, TIMEZONE values
+    # like Europe/Paris fall back to UTC with a warning.
+    "tzdata>=2024.2; sys_platform == 'win32'",
+]
+
+# Other LLM providers - install only if you switch LLM_PROVIDER.
+#   uv sync --extra anthropic
+[project.optional-dependencies]
+anthropic = ["langchain-anthropic>=0.3.0"]
+openai = ["langchain-openai>=0.2.0"]
+ollama = ["langchain-ollama>=0.2.0"]
+
+[tool.uv]
+# This project is a single script, not an importable library, so uv manages the
+# dependencies without building and installing the project itself.
+package = false

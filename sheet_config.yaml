@@ -1,0 +1,125 @@
+# ---------------------------------------------------------------------------
+# SHEET MAPPING - this is the file you edit to match YOUR spreadsheet.
+# The Python script never needs to change.
+#
+# One row = one day of the week.
+# ---------------------------------------------------------------------------
+
+sheet:
+  # google = Google Sheets (needs a service account)
+  # xlsx   = a local .xlsx file (no Google account needed - great for testing)
+  backend: xlsx
+
+  # Tab name inside the spreadsheet.
+  worksheet: "Week"
+
+  # Which row holds your column titles, and where the data starts.
+  header_row: 1
+  first_data_row: 2
+
+  # upsert_by_date -> if a row with the same date already exists, update it
+  #                   (safe to re-run the agent several times a day)
+  # append         -> always add new rows at the bottom
+  write_mode: upsert_by_date
+
+  # Column that holds the date used to find an existing row.
+  # Leave empty to use the column marked with `key: date` below.
+  match_column: ""
+
+  # true  -> days with no pull request are not written at all
+  # false -> every day of the window gets a row (empty tasks cell)
+  skip_empty_days: false
+
+  create_worksheet_if_missing: true
+
+formatting:
+  # Python strftime format for the date cell.
+  date_format: "%Y-%m-%d"        # try "%d/%m/%Y" for a French-style sheet
+
+  # How a single pull request is rendered inside the tasks cell.
+  # Available: {number} {description} {title} {url} {repo} {state}
+  task_line_template: "#{number}: {description}"
+
+  # What separates two pull requests on the same day.
+  # "\n" = new line inside the same cell (what you asked for).
+  task_separator: "\n"
+
+  # Text used when a day has no pull request.
+  empty_day_text: ""
+
+# ---------------------------------------------------------------------------
+# COLUMNS
+#
+# Each entry writes one cell of the day's row. Address the column either by:
+#   column: "C"          -> spreadsheet letter (most explicit)
+#   header: "Tasks"      -> matched against the text in `header_row`
+#
+# And give it content with either:
+#   key:   <name>        -> one of the values below, untouched
+#   value: "..."         -> a template string mixing several values
+#
+# Available values:
+#   date             the day, formatted with `date_format`      2026-10-21
+#   iso_date         the day as YYYY-MM-DD                      2026-10-21
+#   weekday          Monday / Tuesday / ...
+#   weekday_short    Mon / Tue / ...
+#   week_start       first day of the window
+#   week_end         last day of the window (the day you run it)
+#   author           the GitHub username
+#   pr_count         how many PRs that day                      3
+#   pr_numbers       "#12, #14, #15"
+#   pr_numbers_plain "12, 14, 15"
+#   pr_urls          one PR link per line
+#   repos            "org/api, org/front"
+#   tasks            the multi-line "#12: description" block
+#   titles           raw PR titles, one per line
+#   generated_at     when the agent ran
+#
+# Extra option per entry:
+#   skip_if_empty: true   -> leave the existing cell untouched when the value
+#                            is empty (useful so re-runs don't erase manual notes)
+# ---------------------------------------------------------------------------
+
+columns:
+  - column: "A"
+    header: "Date"
+    key: date
+
+  - column: "B"
+    header: "Day"
+    key: weekday
+
+  - column: "C"
+    header: "PRs"
+    key: pr_count
+
+  - column: "D"
+    header: "Tasks"
+    key: tasks
+    skip_if_empty: true
+
+# ---------------------------------------------------------------------------
+# More examples - delete the four entries above and use these instead,
+# or mix and match. Nothing here is required.
+# ---------------------------------------------------------------------------
+#
+#   # Match your own header names instead of letters:
+#   - header: "Jour"
+#     key: date
+#   - header: "Taches realisees"
+#     key: tasks
+#
+#   # A column that combines several values:
+#   - column: "E"
+#     header: "Summary"
+#     value: "{weekday} {date} - {pr_count} PR(s) in {repos}"
+#
+#   # A constant for every row:
+#   - column: "F"
+#     header: "Developer"
+#     value: "{author}"
+#
+#   # Links column, one URL per line:
+#   - column: "G"
+#     header: "Links"
+#     key: pr_urls
